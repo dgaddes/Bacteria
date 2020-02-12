@@ -1,19 +1,16 @@
-#primer
-__author__ = "David Gaddes"
-__Copyright__ "Copyright September 2019, David Gaddes"
-__License__ = "GPL"
-__email__ "dgaddes@protonmail.com"  
+#primers
 
-import os, glob
+import os
+import glob
 import numpy as np
 import pandas as pd
 import Bio
-from Bio.Seq import MutableSeq, Seq
+from Bio.Seq import MutableSeq
+from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqUtils import GC
-from typing import Tuple
 
-def degenerate_primer(primer:'Bio.Seq.MutableSeq') -> str:
+def degenerate_primer(primer):
     forward = (str(primer),)
     for i in range(0, len(primer)):
         for j in range(0, len(forward)):
@@ -21,10 +18,10 @@ def degenerate_primer(primer:'Bio.Seq.MutableSeq') -> str:
             if (primer[i] == 'A') or (primer[i] == 'C') or (primer[i] == 'G') or (primer[i] == 'T'):
                 pass
             else:
-                forward = degenerate_primer_list(forward, primer, i, primer[i])
+                forward = convert_degenerate(forward, primer, i, primer[i])
     return forward
 
-def degenerate_primer_list(forward:'str', primer:'Bio.Seq.MutableSeq', i:'int', letter:'str') -> str:
+def convert_degenerate(forward, primer, i, letter):
     R = ['A', 'G', 'R']
     M = ['A', 'C', 'M']
     S = ['C', 'G', 'S']
@@ -50,7 +47,7 @@ def degenerate_primer_list(forward:'str', primer:'Bio.Seq.MutableSeq', i:'int', 
         forward = forward + (str(primer),)
     return forward
 
-def forward_primer_search(species:'str', forward_primer:'tuple') -> Tuple[str, str, str]:
+def forward_primer_search(species, forward_primer):
     primer_match_query = []
     fwd_primer_set = []
     init_len = len(species)
@@ -72,46 +69,38 @@ def forward_primer_search(species:'str', forward_primer:'tuple') -> Tuple[str, s
         return forward_amplicon_segment, fwd_primer_used, foward_primer_position
         
 
-def reverse_primer_search(species:'str', reverse_primer_set:'tuple') -> Tuple[str, str, str]:
+def reverse_primer_search(species, reverse_primer):
     primer_match_query = []
     rev_primer_set = []
-    
-    for i in range(0,len(reverse_primer_set)):
-        reverse_primer = Seq(reverse_primer_set[i])
-        reverse_primer_complement = str(reverse_primer.reverse_complement())
-        primer_match_query.append(species.find(reverse_primer_complement))
-        rev_primer_set.append(reverse_primer_complement)
-        
+    for i in range(0,len(reverse_primer)):
+        rev = Seq(reverse_primer[i])
+        rev = str(rev.reverse_complement())
+        primer_match_query.append(species.find(rev))
+        rev_primer_set.append(rev)
     if all(item == -1 for item in primer_match_query):
         return str(''), str('N/a'), str('N/a')
     else:
         for j in range(0,len(primer_match_query)):
             if primer_match_query[j] != -1:
-                amplicon_segment = species[0:primer_match_query[j]+len(reverse_primer_complement)]
+                amplicon_segment = species[0:primer_match_query[j]+len(rev)]
                 rev_primer_used = rev_primer_set[j]
-                reverse_primer_position = len(amplicon_segment)-len(reverse_primer_complement)
+                reverse_primer_position = len(species) - len(amplicon_segment)
             else:
                 pass
         return amplicon_segment, rev_primer_used, reverse_primer_position
 
-def create_PCR_amplicon(core_data:'pd.DataFrame', rev_tup:'tuple', fwd_tup:'tuple') -> pd.DataFrame:
+def create_PCR_amplicon(core_data, rev_tup, fwd_tup):
     add_on_data = []
     all_sequnces = []
-    
-    for item in core_data['Record id']:
-        [item_rev, rev_primer_used, reverse_primer_position] = reverse_primer_search(core_data.loc[(core_data['Record id'] == item)]['16S Sequence'].item(), rev_tup)
+    for item in core_data['Species']:
+        #a = core_data.loc[core_data['Species'] == item]
+        
+        [item_rev, rev_primer_used, reverse_primer_position] = reverse_primer_search(core_data.loc[(core_data['Species'] == item)]['16S Sequence'].item(), rev_tup)
         
         [item_amplicon, fwd_primer_used, forward_primer_position] = forward_primer_search(item_rev, fwd_tup)
         
-        add_on_data.append([core_data.loc[(core_data['Record id'] == item)]['Species'].item(),
-                            item,
-                            fwd_primer_used, 
-                            forward_primer_position, 
-                            rev_primer_used, reverse_primer_position, 
-                            round(GC(item_amplicon), 1), 
-                            len(item_amplicon), 
-                            item_amplicon])
+        add_on_data.append([item, fwd_primer_used, forward_primer_position, rev_primer_used, reverse_primer_position, round(GC(item_amplicon), 1), len(item_amplicon), item_amplicon])
 
-    columns = ['Species', 'Record id', 'Forward Primer', 'forward_primer_position', 'Reverse Primer', 'reverse_primer_position', 'GC Content', 'Length of Amplicon', 'Amplicon',]
+    columns = ['Species', 'Forward Primer', 'forward_primer_position', 'Reverse Primer', 'reverse_primer_position', 'GC Content', 'Length of Amplicon', 'Amplicon',]
     calculated_data = pd.DataFrame(add_on_data, columns=columns)
     return calculated_data
