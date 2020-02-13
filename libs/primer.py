@@ -1,8 +1,10 @@
 #primer
+'''
 __author__ = "David Gaddes"
 __Copyright__ "Copyright September 2019, David Gaddes"
 __License__ = "GPL"
 __email__ "dgaddes@protonmail.com"  
+'''
 
 import os, glob
 import numpy as np
@@ -103,7 +105,7 @@ def create_PCR_amplicon(core_data:'pd.DataFrame', rev_tup:'tuple', fwd_tup:'tupl
         
         [item_amplicon, fwd_primer_used, forward_primer_position] = forward_primer_search(item_rev, fwd_tup)
         
-        add_on_data.append([core_data.loc[(core_data['Record id'] == item)]['Species'].item(),
+        add_on_data.append([core_data.loc[(core_data['Record id'] == item)]['Description'].item(),
                             item,
                             fwd_primer_used, 
                             forward_primer_position, 
@@ -112,6 +114,6 @@ def create_PCR_amplicon(core_data:'pd.DataFrame', rev_tup:'tuple', fwd_tup:'tupl
                             len(item_amplicon), 
                             item_amplicon])
 
-    columns = ['Species', 'Record id', 'Forward Primer', 'forward_primer_position', 'Reverse Primer', 'reverse_primer_position', 'GC Content', 'Length of Amplicon', 'Amplicon',]
+    columns = ['Description', 'Record id', 'Forward Primer', 'forward_primer_position', 'Reverse Primer', 'reverse_primer_position', 'GC Content', 'Length of Amplicon', 'Amplicon',]
     calculated_data = pd.DataFrame(add_on_data, columns=columns)
     return calculated_data

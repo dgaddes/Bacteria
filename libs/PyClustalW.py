@@ -26,7 +26,7 @@ def create_alignment_file(pd_frame:'pd.DataFrame', column_name:'str', file_name:
         if len(pd_frame.loc[(pd_frame['Record id'] == item)][column_name].item()) > 1:
             alignment_list.append(SeqRecord(Seq(pd_frame.loc[(pd_frame['Record id'] == item)][column_name].item()[1:min_legnth], generic_dna), 
             id = item,
-            description = pd_frame.loc[(pd_frame['Record id'] == item)]['Species'].item()))
+            description = pd_frame.loc[(pd_frame['Record id'] == item)]['Description'].item()))
         else:
             pass
         

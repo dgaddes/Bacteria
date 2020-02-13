@@ -1,4 +1,11 @@
 #Bacterial
+'''
+__author__ = "David Gaddes"
+__Copyright__ "Copyright September 2019, David Gaddes"
+__License__ = "GPL"
+__email__ "dgaddes@protonmail.com"  
+'''
+
 import os, glob
 import numpy as np
 import pandas as pd
